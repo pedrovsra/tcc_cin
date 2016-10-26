@@ -3,6 +3,7 @@ package com.pedro;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -28,6 +29,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.pedro.auth.OAuth2ClientCredentials;
 import com.pedro.auth.SpotifyUrl;
+import com.pedro.chroma.Pitch2CENS;
+import com.pedro.chroma.iSignal2Chroma;
 import com.pedro.entities.Track;
 import com.pedro.entities.analysis_entities.AudioAnalysis;
 import com.pedro.entities.analysis_entities.Segment;
@@ -246,6 +249,23 @@ public class Main {
 		fw.close();
 	}
 
+	private static void writeToFileC(double[][] arr) throws IOException {
+		FileWriter fw = new FileWriter("chroma.txt");
+		String aux;
+
+		int s1 = arr.length, s2 = arr[0].length;
+		System.out.println(s1 + "  " + s2);
+		for (int i = 0; i < s2; i++) {
+			aux = "";
+			for (int j = 0; j < s1; j++) {
+				aux += arr[j][i] + " ";
+			}
+			fw.write(aux + "\n");
+		}
+		fw.flush();
+		fw.close();
+	}
+
 	private static void run(HttpRequestFactory requestFactory, String music_id) throws IOException {
 		HttpRequest request;
 		Gson gson = new GsonBuilder().create();
@@ -269,31 +289,48 @@ public class Main {
 		try {
 			cont = 0;
 			au = gson.fromJson(response, AudioAnalysis.class);
-			//printPitches(au);
+			// printPitches(au);
 
 			float[][] m = generateMatrix(au);
+
+			iSignal2Chroma p2c = new Pitch2CENS();
+			ArrayList<double[]> arrl = new ArrayList<double[]>();
+			double[] aux;
+			for (int i = 0; i < 12; i++) {
+				aux = new double[m[i].length];
+				System.out.println(m[i].length);
+				for (int j = 0; j < m[i].length; j++) {
+					aux[j] = m[i][j];
+				}
+				arrl.add(aux);
+			}
+
+			double[][] q = p2c.signal2Chroma(arrl, false);
 			writeToFile(m);
+			//writeToFileC(q);
+
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1OtGo99uypkRbMqshBVFnn - cant go on without you
 
-//			initDictionary();
-//
-//			List<Segment> seg = au.getSegments();
-//			String a[], b, c;
-//			for (int i = 0; i < seg.size(); i++) {
-//				a = get3OrderedPitches(seg.get(i).getPitches());
-//				b = a[0] + a[1] + a[2];
-//				if (dic.getChordByNotes(b).getName() != null) {
-//					c = "---- " + dic.getChordByNotes(b).getName();
-//					cont++;
-//				} else
-//					c = "-";
-//				System.out.println(b + " " + c);
-//			}
-//			System.out.println("número de acertos: " + cont);
+			// initDictionary();
+			//
+			// List<Segment> seg = au.getSegments();
+			// String a[], b, c;
+			// for (int i = 0; i < seg.size(); i++) {
+			// a = get3OrderedPitches(seg.get(i).getPitches());
+			// b = a[0] + a[1] + a[2];
+			// if (dic.getChordByNotes(b).getName() != null) {
+			// c = "---- " + dic.getChordByNotes(b).getName();
+			// cont++;
+			// } else
+			// c = "-";
+			// System.out.println(b + " " + c);
+			// }
+			// System.out.println("número de acertos: " + cont);
 
 		} catch (Exception e) {
 			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
+			e.printStackTrace();
 		}
 
 	}
@@ -315,10 +352,6 @@ public class Main {
 
 			// DO IT
 			run(requestFactory, MUSIC_ID);
-
-			// float teste[] = new float[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-			// 11};
-			// teste = get4OrderedPitches(teste);
 
 			// Success!
 			return;
