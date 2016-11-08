@@ -37,9 +37,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.pedro.auth.OAuth2ClientCredentials;
 import com.pedro.auth.SpotifyUrl;
+import com.pedro.auxiliary.ChordTemplates;
 import com.pedro.auxiliary.ExponentialMovingAverage;
 import com.pedro.chroma.Pitch2CENS;
 import com.pedro.chroma.iSignal2Chroma;
+import com.pedro.entities.Cifra;
 import com.pedro.entities.Track;
 import com.pedro.entities.analysis_entities.AudioAnalysis;
 import com.pedro.entities.analysis_entities.Segment;
@@ -351,8 +353,8 @@ public class Main {
 		String normalizedSong = Normalizer.normalize(song, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 		String normalizedArtist = Normalizer.normalize(artist, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 
-		System.out.println(normalizedArtist);
-		System.out.println(normalizedSong);
+		// System.out.println(normalizedArtist);
+		// System.out.println(normalizedSong);
 
 		String[] songArr = normalizedSong.toLowerCase().split(" ");
 		String[] artistArr = normalizedArtist.toLowerCase().split(" ");
@@ -386,12 +388,12 @@ public class Main {
 		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
 
 		System.out.println(url);
-		Document doc = Jsoup.connect(url).get();
+		Cifra c = new Cifra(Jsoup.connect(url).get());
 		// Element pre = doc.select("cifra-tom").first();
 		// Element tom = doc.getElementById("cifra_tom");
 		// System.out.println(tom.html());
 
-		System.out.println(doc.html());
+		// System.out.println(doc.html());
 		System.exit(0);
 
 		SpotifyUrl urlAnalysis = new SpotifyUrl("https://api.spotify.com/v1/audio-analysis/" + music_id);
@@ -439,6 +441,7 @@ public class Main {
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
 			// 1OtGo99uypkRbMqshBVFnn - cant go on without you
+			// 66OsFOW2GHEnmGGbMpvB66 - the stage
 			// python plot_matrix.py --chroma chroma.txt
 
 			// initDictionary();
