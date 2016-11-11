@@ -104,7 +104,7 @@ public class Main {
 	private static void printPitches(AudioAnalysis aa) {
 		List<Segment> segments = aa.getSegments();
 		int size = segments.size();
-		System.out.println("número de segmentos: " + size);
+		System.out.println("nÃºmero de segmentos: " + size);
 		for (int i = 0; i < 12; i++) {
 			System.out.print(CHROMATIC_SCALE[i] + ": ");
 			for (int j = 0; j < size; j++) {
@@ -331,7 +331,7 @@ public class Main {
 	}
 
 	private static float[][] calculateMovingAgerage(float[][] arr) {
-		float[][] aux = new float[arr.length][arr[0].length];
+		float[][] aux = new float[12][arr[0].length];
 		ExponentialMovingAverage ema = new ExponentialMovingAverage(EMA_ALPHA);
 
 		for (int i = 0; i < arr.length; i++) {
@@ -342,13 +342,23 @@ public class Main {
 
 		return aux;
 	}
+	
+	private static float[][] calculateMovingMedian(float[][] arr, int L) {
+		float[][] aux = new float[12][arr[0].length];
+		
+		for(int i = 0; i < 12; i++) {
+			for(int j = 0; j < arr[i].length; j++) {
+				// TODO tratar os bounds	
+			}
+		}
+	}
 
 	private static String prepareUrl(String song, String artist) {
-		song = song.replace("é", "");
-		song = song.replace("É", "");
+		song = song.replace("Ã©", "");
+		song = song.replace("Ã‰", "");
 
-		artist = artist.replace("é", "");
-		artist = artist.replace("É", "");
+		artist = artist.replace("Ã©", "");
+		artist = artist.replace("Ã‰", "");
 
 		String normalizedSong = Normalizer.normalize(song, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 		String normalizedArtist = Normalizer.normalize(artist, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
@@ -378,12 +388,12 @@ public class Main {
 	private static void run(HttpRequestFactory requestFactory, String music_id) throws IOException {
 		HttpRequest request;
 		Gson gson = new GsonBuilder().create();
-		// pegando informações da musica
+		// pegando informaÃ§Ãµes da musica
 		SpotifyUrl urlInfo = new SpotifyUrl("https://api.spotify.com/v1/tracks/" + music_id);
 		request = requestFactory.buildGetRequest(urlInfo);
 		Track t = gson.fromJson(request.execute().parseAsString(), Track.class);
 		System.out.println(
-				"Obtendo informações da música '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
+				"Obtendo informaÃ§Ãµes da mÃºsica '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
 
 		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
 
@@ -436,7 +446,7 @@ public class Main {
 															// MOVING AVERAGE
 			writeToFile(ma);
 
-			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
+			// O CHROMAGRAM Ã‰ O MEU CONJUNTO DE OBSERVACOES
 
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
@@ -460,10 +470,10 @@ public class Main {
 			// c = "-";
 			// System.out.println(b + " " + c);
 			// }
-			// System.out.println("número de acertos: " + cont);
+			// System.out.println("nÃºmero de acertos: " + cont);
 
 		} catch (Exception e) {
-			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
+			System.out.println("NÃ£o foi possÃ­vel gerar a matriz de valores a partir dessa mÃºsica :(");
 			e.printStackTrace();
 		}
 
@@ -471,7 +481,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
-		System.out.println("Digite o ID da música a ser analisada:");
+		System.out.println("Digite o ID da mÃºsica a ser analisada:");
 		MUSIC_ID = in.nextLine();
 		in.close();
 		try {
