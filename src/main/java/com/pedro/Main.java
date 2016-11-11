@@ -342,23 +342,42 @@ public class Main {
 
 		return aux;
 	}
-	
+
+	private static float median(float[] arr) {
+		Arrays.sort(arr);
+		return arr[(int) Math.floor(arr.length)];
+	}
+
 	private static float[][] calculateMovingMedian(float[][] arr, int L) {
-		float[][] aux = new float[12][arr[0].length];
-		
-		for(int i = 0; i < 12; i++) {
-			for(int j = 0; j < arr[i].length; j++) {
-				// TODO tratar os bounds	
+		float[][] Ctraco = new float[12][arr[0].length];
+		float[] aux2;
+
+		int i, j, size = arr[0].length - 1;
+
+		for (int b = 0; b < 12; b++) {
+			for (int m = 0; m < size; m++) {
+				int q = m - Math.floorDiv((L - 1), 2), p = m + (int) Math.ceil((L - 1) / 2);
+				i = q >= 0 ? q : 0;
+				j = p <= size ? p : size;
+				aux2 = new float[p - q + 1];
+				for (int c = q; c < p; c++)
+					aux2[c] = arr[b][c];
+
+				Ctraco[b][m] = median(aux2);
+
+				// TODO tratar os bounds
 			}
 		}
+
+		return Ctraco;
 	}
 
 	private static String prepareUrl(String song, String artist) {
-		song = song.replace("Ã©", "");
-		song = song.replace("Ã‰", "");
+		song = song.replace("É", "");
+		song = song.replace("é", "");
 
-		artist = artist.replace("Ã©", "");
-		artist = artist.replace("Ã‰", "");
+		artist = artist.replace("É", "");
+		artist = artist.replace("é", "");
 
 		String normalizedSong = Normalizer.normalize(song, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
 		String normalizedArtist = Normalizer.normalize(artist, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
