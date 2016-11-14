@@ -345,7 +345,13 @@ public class Main {
 
 	private static float median(float[] arr) {
 		Arrays.sort(arr);
-		return arr[(int) Math.floor(arr.length)];
+		int size = arr.length;
+		if (size % 2 == 0) {
+			int h = (size / 2) - 1;
+			return ((arr[h] + arr[h + 1]) / 2);
+		} else {
+			return arr[size / 2];
+		}
 	}
 
 	private static float[][] calculateMovingMedian(float[][] arr, int L) {
@@ -353,19 +359,18 @@ public class Main {
 		float[] aux2;
 
 		int i, j, size = arr[0].length - 1;
-
+		int s;
 		for (int b = 0; b < 12; b++) {
 			for (int m = 0; m < size; m++) {
 				int q = m - Math.floorDiv((L - 1), 2), p = m + (int) Math.ceil((L - 1) / 2);
-				i = q >= 0 ? q : 0;
+				i = q > 0 ? q : 0;
 				j = p <= size ? p : size;
-				aux2 = new float[p - q + 1];
-				for (int c = q; c < p; c++)
-					aux2[c] = arr[b][c];
+				s = j - i < L - 1 ? j - i : L;
+				aux2 = new float[s];
+				for (int c = i; c < j; c++)
+					aux2[c] = arr[b][c]; // TODO corrigir isso aqui
 
 				Ctraco[b][m] = median(aux2);
-
-				// TODO tratar os bounds
 			}
 		}
 
@@ -412,7 +417,7 @@ public class Main {
 		request = requestFactory.buildGetRequest(urlInfo);
 		Track t = gson.fromJson(request.execute().parseAsString(), Track.class);
 		System.out.println(
-				"Obtendo informaÃ§Ãµes da mÃºsica '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
+				"Obtendo informações da música '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
 
 		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
 
@@ -423,7 +428,7 @@ public class Main {
 		// System.out.println(tom.html());
 
 		// System.out.println(doc.html());
-		System.exit(0);
+		// System.exit(0);
 
 		SpotifyUrl urlAnalysis = new SpotifyUrl("https://api.spotify.com/v1/audio-analysis/" + music_id);
 		request = requestFactory.buildGetRequest(urlAnalysis);
@@ -442,30 +447,32 @@ public class Main {
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 
-			iSignal2Chroma p2c = new Pitch2CENS();
-			ArrayList<double[]> arrl = new ArrayList<double[]>();
-			double[] aux;
-			for (int i = 0; i < 12; i++) {
-				aux = new double[m[i].length];
-				System.out.println(m[i].length);
-				for (int j = 0; j < m[i].length; j++) {
-					aux[j] = m[i][j];
-				}
-				arrl.add(aux);
-			}
+			float[][] m2 = calculateMovingMedian(m, 13);
+
+			// iSignal2Chroma p2c = new Pitch2CENS();
+			// ArrayList<double[]> arrl = new ArrayList<double[]>();
+			// double[] aux;
+			// for (int i = 0; i < 12; i++) {
+			// aux = new double[m[i].length];
+			// System.out.println(m[i].length);
+			// for (int j = 0; j < m[i].length; j++) {
+			// aux[j] = m[i][j];
+			// }
+			// arrl.add(aux);
+			// }
 
 			// calculando CENS do pitch
-			double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
-															// CENS
+			// double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
+			// CENS
 			// writeToFile(m);
 			// writeToFileC(q);
 
 			// calculando a moving average (pre-filtro)
-			float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
-															// MOVING AVERAGE
-			writeToFile(ma);
+			// float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
+			// MOVING AVERAGE
+			writeToFile(m2);
 
-			// O CHROMAGRAM Ã‰ O MEU CONJUNTO DE OBSERVACOES
+			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
 
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
@@ -492,7 +499,7 @@ public class Main {
 			// System.out.println("nÃºmero de acertos: " + cont);
 
 		} catch (Exception e) {
-			System.out.println("NÃ£o foi possÃ­vel gerar a matriz de valores a partir dessa mÃºsica :(");
+			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
 			e.printStackTrace();
 		}
 
@@ -500,7 +507,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
-		System.out.println("Digite o ID da mÃºsica a ser analisada:");
+		System.out.println("Digite o ID da música a ser analisada:");
 		MUSIC_ID = in.nextLine();
 		in.close();
 		try {
