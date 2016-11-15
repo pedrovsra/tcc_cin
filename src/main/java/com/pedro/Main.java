@@ -364,11 +364,13 @@ public class Main {
 			for (int m = 0; m < size; m++) {
 				int q = m - Math.floorDiv((L - 1), 2), p = m + (int) Math.ceil((L - 1) / 2);
 				i = q > 0 ? q : 0;
-				j = p <= size ? p : size;
+				j = p <= size ? p : size - 1;
 				s = j - i < L - 1 ? j - i : L;
 				aux2 = new float[s];
-				for (int c = i; c < j; c++)
-					aux2[c] = arr[b][c]; // TODO corrigir isso aqui
+				if((j - i <= 12) && !(j == 12 && i == 0)) j--;
+				
+				for (int c = i, k = 0; c <= j; c++, k++)
+					aux2[k] = arr[b][c]; // TODO corrigir isso aqui
 
 				Ctraco[b][m] = median(aux2);
 			}
@@ -447,7 +449,7 @@ public class Main {
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 
-			float[][] m2 = calculateMovingMedian(m, 13);
+			//float[][] m2 = calculateMovingMedian(m, 13);
 
 			// iSignal2Chroma p2c = new Pitch2CENS();
 			// ArrayList<double[]> arrl = new ArrayList<double[]>();
@@ -470,7 +472,7 @@ public class Main {
 			// calculando a moving average (pre-filtro)
 			// float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
 			// MOVING AVERAGE
-			writeToFile(m2);
+			writeToFile(m);
 
 			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
 
