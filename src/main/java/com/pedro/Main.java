@@ -179,112 +179,6 @@ public class Main {
 		}
 	}
 
-	private static void initDictionary() {
-		// ACORDE C (DO)
-		dic.addChord("CEG", "C");
-		dic.addChord("CGE", "C");
-		dic.addChord("EGC", "C");
-		dic.addChord("ECG", "C");
-		dic.addChord("GEC", "C");
-		dic.addChord("GCE", "C");
-
-		// ACORDE C# (DO SUSTENIDO)
-		dic.addChord("C#FG#", "C#");
-		dic.addChord("C#G#F", "C#");
-		dic.addChord("FC#G#", "C#");
-		dic.addChord("FG#C#", "C#");
-		dic.addChord("G#FC#", "C#");
-		dic.addChord("G#C3F", "C#");
-
-		// ACORDE D (RE)
-		dic.addChord("DF#A", "D");
-		dic.addChord("DAF#", "D");
-		dic.addChord("F#DA", "D");
-		dic.addChord("F#AD", "D");
-		dic.addChord("ADF#", "D");
-		dic.addChord("AF#D", "D");
-
-		// ACORDE D# (RE SUSTENIDO)
-		dic.addChord("D#GA#", "D#");
-		dic.addChord("D#A#G", "D#");
-		dic.addChord("GD#A#", "D#");
-		dic.addChord("GA#D#", "D#");
-		dic.addChord("A#D#G", "D#");
-		dic.addChord("A#GD#", "D#");
-
-		// ACORDE E (MI)
-		dic.addChord("EG#B", "E");
-		dic.addChord("EBG#", "E");
-		dic.addChord("G#EB", "E");
-		dic.addChord("G#BE", "E");
-		dic.addChord("BEG#", "E");
-		dic.addChord("BG#E", "E");
-
-		// ACORDE F (FA)
-		dic.addChord("FAC", "F");
-		dic.addChord("FCA", "F");
-		dic.addChord("ACF", "F");
-		dic.addChord("AFC", "F");
-		dic.addChord("CAF", "F");
-		dic.addChord("CFA", "F");
-
-		// ACORDE F# (FA SUSTENIDO)
-		dic.addChord("F#A#C#", "F#");
-		dic.addChord("F#C#A#", "F#");
-		dic.addChord("A#F#C#", "F#");
-		dic.addChord("A#C#F#", "F#");
-		dic.addChord("C#A#F#", "F#");
-		dic.addChord("C#F#A#", "F#");
-
-		// ACORDE G (SOL)
-		dic.addChord("GBD", "G");
-		dic.addChord("GDB", "G");
-		dic.addChord("BGD", "G");
-		dic.addChord("BDG", "G");
-		dic.addChord("DGB", "G");
-		dic.addChord("DBG", "G");
-
-		// ACORDE G# (SOL SUSTENIDO)
-		dic.addChord("G#CD#", "G#");
-		dic.addChord("G#D#C", "G#");
-		dic.addChord("D#G#C", "G#");
-		dic.addChord("D#CG#", "G#");
-		dic.addChord("CD#G#", "G#");
-		dic.addChord("CG#D#", "G#");
-
-		// ACORDE A (LA)
-		dic.addChord("AC#E", "A");
-		dic.addChord("AEC#", "A");
-		dic.addChord("C#EA", "A");
-		dic.addChord("C#AE", "A");
-		dic.addChord("EAC#", "A");
-		dic.addChord("EC#A", "A");
-
-		// ACORDE A# (LA SUSTENIDO)
-		dic.addChord("A#DF", "A#");
-		dic.addChord("A#FD", "A#");
-		dic.addChord("#DFA", "A#");
-		dic.addChord("#DAF", "A#");
-		dic.addChord("FA#D", "A#");
-		dic.addChord("FDA#", "A#");
-
-		// ACORDE B (SI)
-		dic.addChord("BD#F#", "B");
-		dic.addChord("BF#D#", "B");
-		dic.addChord("F#BD#", "B");
-		dic.addChord("F#D#B", "B");
-		dic.addChord("D#BF#", "B");
-		dic.addChord("D#F#B", "B");
-
-		// ACORDE Am (LA MENOR)
-		dic.addChord("ACE", "Am");
-		dic.addChord("AEC", "Am");
-		dic.addChord("CAE", "Am");
-		dic.addChord("CEA", "Am");
-		dic.addChord("EAC", "Am");
-		dic.addChord("ECA", "Am");
-	}
-
 	private static void writeToFile(float[][] arr) throws IOException {
 		FileWriter fw = new FileWriter("chroma.txt");
 		String aux;
@@ -367,10 +261,11 @@ public class Main {
 				j = p <= size ? p : size - 1;
 				s = j - i < L - 1 ? j - i : L;
 				aux2 = new float[s];
-				if((j - i <= 12) && !(j == 12 && i == 0)) j--;
-				
+				if ((j - i <= 12) && !(j == 12 && i == 0))
+					j--;
+
 				for (int c = i, k = 0; c <= j; c++, k++)
-					aux2[k] = arr[b][c]; // TODO corrigir isso aqui
+					aux2[k] = arr[b][c];
 
 				Ctraco[b][m] = median(aux2);
 			}
@@ -449,7 +344,7 @@ public class Main {
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 
-			//float[][] m2 = calculateMovingMedian(m, 13);
+			float[][] m2 = calculateMovingMedian(m, 13);
 
 			// iSignal2Chroma p2c = new Pitch2CENS();
 			// ArrayList<double[]> arrl = new ArrayList<double[]>();
@@ -472,7 +367,7 @@ public class Main {
 			// calculando a moving average (pre-filtro)
 			// float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
 			// MOVING AVERAGE
-			writeToFile(m);
+			writeToFile(m2);
 
 			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
 
@@ -484,7 +379,7 @@ public class Main {
 
 			// initDictionary();
 
-			initProbMatrix(0.5, 4); // ESTADOS
+			// initProbMatrix(0.5, 4); // ESTADOS
 
 			// List<Segment> seg = au.getSegments();
 			// String a[], b, c;
