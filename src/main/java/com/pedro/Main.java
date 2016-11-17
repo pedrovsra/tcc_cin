@@ -248,7 +248,46 @@ public class Main {
 		}
 	}
 
-	private static float[][] calculateMovingMedian(float[][] arr, int L) {
+	private static float[][] calculateStaticMovingAverage(float[][] arr, int L) {
+		float[][] Ctraco = new float[12][arr[0].length];
+		float aux2 = 0;
+
+		int i, j, size = arr[0].length - 1;
+		int s, aux = L % 2 == 0 ? (L / 2) - 1 : (L - 1) / 2;
+		for (int b = 0; b < 12; b++) {
+			for (int m = aux; m < size; m++) {
+				for (int c = m, l = 0; c < L && c < size - aux; c++, l++)
+					aux2 += arr[b][c + l - aux];
+
+				Ctraco[b][m - aux] = aux2 / L;
+			}
+		}
+
+		return Ctraco;
+	}
+
+	private static float[][] calculateStaticMovingMedian(float[][] arr, int L) {
+		float[][] Ctraco = new float[12][arr[0].length];
+		float[] aux2;
+
+		int i, j, size = arr[0].length - 1;
+		int s, aux = L % 2 == 0 ? (L / 2) - 1 : (L - 1) / 2;
+		for (int b = 0; b < 12; b++) {
+			for (int m = aux; m < size; m++) {
+				int q = m - Math.floorDiv((L - 1), 2), p = m + (int) Math.ceil((L - 1) / 2);
+				aux2 = new float[L];
+
+				for (int c = q, k = 0; c <= p && p < size - aux; c++, k++)
+					aux2[k] = arr[b][c];
+
+				Ctraco[b][m - aux] = median(aux2);
+			}
+		}
+
+		return Ctraco;
+	}
+
+	private static float[][] calculateDynamicMovingMedian(float[][] arr, int L) {
 		float[][] Ctraco = new float[12][arr[0].length];
 		float[] aux2;
 
@@ -319,7 +358,7 @@ public class Main {
 		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
 
 		System.out.println(url);
-		Cifra c = new Cifra(Jsoup.connect(url).get());
+		// Cifra c = new Cifra(Jsoup.connect(url).get());
 		// Element pre = doc.select("cifra-tom").first();
 		// Element tom = doc.getElementById("cifra_tom");
 		// System.out.println(tom.html());
@@ -344,7 +383,8 @@ public class Main {
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 
-			float[][] m2 = calculateMovingMedian(m, 13);
+			float[][] m2 = calculateDynamicMovingMedian(m, 7);
+			// float[][] m2 = calculateStaticMovingMedian(m, 7);
 
 			// iSignal2Chroma p2c = new Pitch2CENS();
 			// ArrayList<double[]> arrl = new ArrayList<double[]>();
@@ -375,6 +415,7 @@ public class Main {
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
 			// 1OtGo99uypkRbMqshBVFnn - cant go on without you
 			// 66OsFOW2GHEnmGGbMpvB66 - the stage
+			// 5V1AHQugSTASVez5ffJtFo - let it be
 			// python plot_matrix.py --chroma chroma.txt
 
 			// initDictionary();
