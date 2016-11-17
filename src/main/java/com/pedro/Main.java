@@ -237,6 +237,14 @@ public class Main {
 		return aux;
 	}
 
+	private static float sumOfMult(float[] pcp, float[] template) {
+		float sum = 0;
+		for (int i = 0; i < 12; i++) {
+			sum += (pcp[i] * template[i]);
+		}
+		return sum;
+	}
+
 	private static float median(float[] arr) {
 		Arrays.sort(arr);
 		int size = arr.length;

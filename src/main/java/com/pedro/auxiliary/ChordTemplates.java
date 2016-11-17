@@ -66,13 +66,13 @@ public enum ChordTemplates {
 	B5 (0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 	
 
-	private double[] chordTemplates;
+	private float[] chordTemplates;
 
-	private ChordTemplates(double... tmp) {
+	private ChordTemplates(float... tmp) {
 		this.chordTemplates = tmp;
 	}
 
-	public double[] getTemplate() {
+	public float[] getTemplate() {
 		return this.chordTemplates;
 	}
 }
