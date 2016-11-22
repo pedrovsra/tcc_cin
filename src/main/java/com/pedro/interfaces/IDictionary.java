@@ -5,7 +5,7 @@ import com.pedro.entities.Note;
 
 public interface IDictionary {
 
-	public Chord getChordByNotes(String notes);
+	//public Chord getChordByNotes(String notes);
 
 	public void addChord(String notes, String chord);
 

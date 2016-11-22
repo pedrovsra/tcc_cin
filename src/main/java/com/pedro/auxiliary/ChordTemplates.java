@@ -1,5 +1,7 @@
 package com.pedro.auxiliary;
 
+import com.pedro.entities.Chord;
+
 public enum ChordTemplates {
 	
 	// https://www.cs.cmu.edu/~scottd/chords_and_scales/music.html

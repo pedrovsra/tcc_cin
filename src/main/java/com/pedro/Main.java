@@ -9,7 +9,9 @@ import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.jsoup.Jsoup;
@@ -41,6 +43,7 @@ import com.pedro.auxiliary.ChordTemplates;
 import com.pedro.auxiliary.ExponentialMovingAverage;
 import com.pedro.chroma.Pitch2CENS;
 import com.pedro.chroma.iSignal2Chroma;
+import com.pedro.entities.Chord;
 import com.pedro.entities.Cifra;
 import com.pedro.entities.Track;
 import com.pedro.entities.analysis_entities.AudioAnalysis;
@@ -295,6 +298,27 @@ public class Main {
 		return Ctraco;
 	}
 
+	private static String tratarAcorde(String acorde) {
+
+		if (acorde.contains("#")) {
+			acorde = acorde.replace('#', 's');
+		}
+
+		return acorde;
+	}
+
+	private static Map<String, float[]> getChordTemplates(Map<String, Integer> acordes) {
+		Map<String, float[]> templates = new HashMap<String, float[]>();
+		Chord c;
+
+		for (Map.Entry<String, Integer> entry : acordes.entrySet()) {
+			c = new Chord(entry.getKey(), ChordTemplates.valueOf(tratarAcorde(entry.getKey())).getTemplate());
+			templates.put(c.getName(), c.getTemplate());
+		}
+
+		return templates;
+	}
+
 	private static float[][] calculateDynamicMovingMedian(float[][] arr, int L) {
 		float[][] Ctraco = new float[12][arr[0].length];
 		float[] aux2;
@@ -366,7 +390,9 @@ public class Main {
 		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
 
 		System.out.println(url);
-		// Cifra c = new Cifra(Jsoup.connect(url).get());
+		Cifra c = new Cifra(Jsoup.connect(url).get());
+
+		Map<String, float[]> teste = getChordTemplates(c.getMapChords());
 		// Element pre = doc.select("cifra-tom").first();
 		// Element tom = doc.getElementById("cifra_tom");
 		// System.out.println(tom.html());

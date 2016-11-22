@@ -3,11 +3,13 @@ package com.pedro.entities;
 public class Chord {
 
 	private String name;
+	private float[] template;
 	// private Note[] notes;
 
-	public Chord(String name/* , Note[] notes */) {
+	public Chord(String name, float[] template) {
 		super();
 		this.name = name;
+		this.template = template;
 		// this.notes = notes;
 	}
 
@@ -19,11 +21,11 @@ public class Chord {
 		this.name = name;
 	}
 
-	// public Note[] getNotes() {
-	// return notes;
-	// }
-	//
-	// public void setNotes(Note[] notes) {
-	// this.notes = notes;
-	// }
+	public float[] getTemplate() {
+		return this.template;
+	}
+
+	public void setTemplate(float[] template) {
+		this.template = template;
+	}
 }

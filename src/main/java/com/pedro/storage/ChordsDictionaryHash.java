@@ -23,7 +23,7 @@ public class ChordsDictionaryHash implements IDictionary {
 		this.chords.put(notes, chord);
 	}
 
-	public Chord getChordByNotes(String notes) {
-		return new Chord(this.chords.get(notes));
-	}
+//	public Chord getChordByNotes(String notes) {
+//		return new Chord(this.chords.get(notes));
+//	}
 }
