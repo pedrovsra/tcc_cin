@@ -28,8 +28,8 @@ public class Cifra {
 		this.getChords();
 		this.initChords();
 		this.initialProbabilities();
-		this.printChords();
-		this.printProbabilities();
+		//this.printChords();
+		//this.printProbabilities();
 	}
 
 	private void getChords() {

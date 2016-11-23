@@ -86,6 +86,8 @@ public class Main {
 			"C", "G", "D", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em", "C", "G",
 			"D", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "G", "D", "Em", "G", "Em", "G" };
 
+	private static float[][] SEGMENTS;
+
 	private static double[][] PROB_MATRIX;
 	private static double[][] EMISSION_MATRIX;
 	private static double[] INITIAL_PROBALILITIES;
@@ -187,7 +189,7 @@ public class Main {
 		String aux;
 		for (int i = 0; i < 12; i++) {
 			aux = "";
-			System.out.println(arr[i].length);
+			// System.out.println(arr[i].length);
 			for (int j = 0; j < arr[i].length; j++) {
 				aux += arr[i][j] + " ";
 			}
@@ -298,7 +300,7 @@ public class Main {
 		return Ctraco;
 	}
 
-	private static String tratarAcorde(String acorde) {
+	private static String tratarNomeAcorde(String acorde) {
 
 		if (acorde.contains("#")) {
 			acorde = acorde.replace('#', 's');
@@ -312,7 +314,7 @@ public class Main {
 		Chord c;
 
 		for (Map.Entry<String, Integer> entry : acordes.entrySet()) {
-			c = new Chord(entry.getKey(), ChordTemplates.valueOf(tratarAcorde(entry.getKey())).getTemplate());
+			c = new Chord(entry.getKey(), ChordTemplates.valueOf(tratarNomeAcorde(entry.getKey())).getTemplate());
 			templates.put(c.getName(), c.getTemplate());
 		}
 
@@ -377,6 +379,14 @@ public class Main {
 		return url;
 	}
 
+	private static float[] getPCP(int index) {
+		float[] aux = new float[12];
+		for (int i = 0; i < 12; i++) {
+			aux[i] = SEGMENTS[i][index];
+		}
+		return aux;
+	}
+
 	private static void run(HttpRequestFactory requestFactory, String music_id) throws IOException {
 		HttpRequest request;
 		Gson gson = new GsonBuilder().create();
@@ -387,12 +397,12 @@ public class Main {
 		System.out.println(
 				"Obtendo informações da música '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
 
-		String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
-
-		System.out.println(url);
-		Cifra c = new Cifra(Jsoup.connect(url).get());
-
-		Map<String, float[]> teste = getChordTemplates(c.getMapChords());
+		// for (int v = 0; v < teste.size(); v++) {
+		// System.out.println(teste.entrySet().toArray()[v]);
+		// }
+		// for (Map.Entry<String, float[]> entry : teste.entrySet()) {
+		// System.out.println(entry.getKey());
+		// }
 		// Element pre = doc.select("cifra-tom").first();
 		// Element tom = doc.getElementById("cifra_tom");
 		// System.out.println(tom.html());
@@ -411,12 +421,20 @@ public class Main {
 		int cont;
 
 		try {
+
+			String url = prepareUrl(t.getName(), t.getArtists().get(0).getName());
+
+			System.out.println(url);
+			Cifra c = new Cifra(Jsoup.connect(url).get());
+
+			Map<String, float[]> teste = getChordTemplates(c.getMapChords());
+
 			cont = 0;
 			au = gson.fromJson(response, AudioAnalysis.class);
 			// printPitches(au);
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
-
+			SEGMENTS = m;
 			float[][] m2 = calculateDynamicMovingMedian(m, 7);
 			// float[][] m2 = calculateStaticMovingMedian(m, 7);
 
@@ -431,6 +449,16 @@ public class Main {
 			// }
 			// arrl.add(aux);
 			// }
+
+			int qtdAcordes = teste.size(), qtdSegmentos = m[0].length;
+			// MATRIZ DE PROBABILIDADES DE TAMANHO (qtd de acordes x segmentos)
+			float[][] probMatrix = new float[qtdAcordes][qtdSegmentos];
+			int v = 0;
+			for (Map.Entry<String, float[]> entry : teste.entrySet()) {
+				for (int x = 0; x < qtdSegmentos; x++) {
+					probMatrix[v][x] = sumOfMult(getPCP(x), entry.getValue());
+				}
+			}
 
 			// calculando CENS do pitch
 			// double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
