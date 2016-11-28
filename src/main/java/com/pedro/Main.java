@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import javax.swing.text.StyledEditorKit.ForegroundAction;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -43,6 +45,7 @@ import com.pedro.auth.OAuth2ClientCredentials;
 import com.pedro.auth.SpotifyUrl;
 import com.pedro.auxiliary.ChordTemplates;
 import com.pedro.auxiliary.ExponentialMovingAverage;
+import com.pedro.auxiliary.Viterbi;
 import com.pedro.chroma.Pitch2CENS;
 import com.pedro.chroma.iSignal2Chroma;
 import com.pedro.entities.Chord;
@@ -471,10 +474,15 @@ public class Main {
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
 
-			int segPorAcorde = QTDSEGMENTOS / numAcordes;
+			float segPorAcorde = QTDSEGMENTOS / numAcordes;
 
-			float probFicar = (segPorAcorde - 1) / segPorAcorde;
-			float probMudar = 1 / segPorAcorde;
+			double probFicar = (segPorAcorde - 1) / segPorAcorde;
+			double probMudar = 1 / segPorAcorde;
+
+			System.out.println("prob de ficar " + probFicar);
+			System.out.println("prob de mudar " + probMudar);
+
+			List<String> states = new ArrayList<String>();
 
 			// MATRIZ DE PROBABILIDADES DE TAMANHO (qtd de acordes x segmentos)
 			float[][] probMatrix = new float[QTDACORDES][QTDSEGMENTOS];
@@ -482,6 +490,7 @@ public class Main {
 			MAX = Float.MIN_VALUE;
 			MIN = Float.MAX_VALUE;
 			for (Map.Entry<String, float[]> entry : teste.entrySet()) {
+				states.add(entry.getKey());
 				for (int x = 0; x < QTDSEGMENTOS; x++) {
 					probMatrix[v][x] = sumOfMult(getPCP(x), entry.getValue());
 
@@ -491,27 +500,27 @@ public class Main {
 				v++;
 			}
 
-			System.out.println(MAX);
-			System.out.println(MIN);
+			// System.out.println(MAX);
+			// System.out.println(MIN);
 
-			for (int x = 0; x < QTDACORDES; x++) {
-				for (int l = 0; l < QTDSEGMENTOS; l++) {
-					System.out.print(probMatrix[x][l] + " ");
-				}
-				System.out.println("");
-			}
+			// for (int x = 0; x < QTDACORDES; x++) {
+			// for (int l = 0; l < QTDSEGMENTOS; l++) {
+			// System.out.print(probMatrix[x][l] + " ");
+			// }
+			// System.out.println("");
+			// }
 
 			// NORMALIZANDO MATRIZ DE PROBABILIDADES (0 a 1)
 			probMatrix = normalize(probMatrix);
 
-			System.out.println("");
+			// System.out.println("");
 
-			for (int x = 0; x < QTDACORDES; x++) {
-				for (int l = 0; l < QTDSEGMENTOS; l++) {
-					System.out.print(probMatrix[x][l] + " ");
-				}
-				System.out.println("");
-			}
+			// for (int x = 0; x < QTDACORDES; x++) {
+			// for (int l = 0; l < QTDSEGMENTOS; l++) {
+			// System.out.print(probMatrix[x][l] + " ");
+			// }
+			// System.out.println("");
+			// }
 
 			// calculando CENS do pitch
 			// double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
@@ -536,6 +545,39 @@ public class Main {
 			// initDictionary();
 
 			// initProbMatrix(0.5, 4); // ESTADOS
+
+			// STATES: acordes presentes na musica
+			// OBSERVACOES: o pcp de cada segmento
+			// PROBABILIDADE A PRIORI: 1 pro primeiro acorde da musica, 0 pro resto
+			// PROBALIDIDADE DE EMISSAO: soma das multiplicaes do pcp com template
+			// PROBABILIDADE DE TRANSICAO: 1/x para mudar e (x-1)/x para ficar, onde x = (seg/acorde)
+
+			Viterbi vi = new Viterbi();
+
+			List<String> acordes = c.getAcordes();
+
+			// definindo as probabilidades iniciais -----------
+			double[] start_prob = new double[states.size()];
+			start_prob[0] = 1;
+			for (int s = 1; s < states.size(); s++) {
+				start_prob[s] = 0;
+			}
+			// -------------------------------------------------
+
+			// definindo as observacoes -----------------------
+			String[] observations = new String[acordes.size()];
+			for (int s = 0; s < acordes.size(); s++) {
+				observations[s] = acordes.get(s);
+			}
+			// -------------------------------------------------
+
+			for (int s = 0; s < states.size(); s++) {
+				System.out.println(states.get(s) + ": " + start_prob[s]);
+			}
+
+			// forwardViterbi(observations, states, start_probability,
+			// transition_probability, emission_probability)
+			// TODO
 
 			// List<Segment> seg = au.getSegments();
 			// String a[], b, c;
