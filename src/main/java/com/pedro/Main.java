@@ -443,6 +443,7 @@ public class Main {
 
 			System.out.println(url);
 			Cifra c = new Cifra(Jsoup.connect(url).get());
+			int numAcordes = c.getAcordes().size();
 
 			Map<String, float[]> teste = getChordTemplates(c.getMapChords());
 
@@ -469,6 +470,12 @@ public class Main {
 
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
+
+			int segPorAcorde = QTDSEGMENTOS / numAcordes;
+
+			float probFicar = (segPorAcorde - 1) / segPorAcorde;
+			float probMudar = 1 / segPorAcorde;
+
 			// MATRIZ DE PROBABILIDADES DE TAMANHO (qtd de acordes x segmentos)
 			float[][] probMatrix = new float[QTDACORDES][QTDSEGMENTOS];
 			int v = 0;
