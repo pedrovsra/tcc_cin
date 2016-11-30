@@ -95,7 +95,7 @@ public class Main {
 	private static int QTDACORDES;
 	private static int QTDSEGMENTOS;
 
-	private static float MAX, MIN;
+	private static double MAX, MIN;
 
 	private static double[][] PROB_MATRIX;
 	private static double[][] EMISSION_MATRIX;
@@ -385,10 +385,10 @@ public class Main {
 		return url;
 	}
 
-	private static float[][] normalize(float[][] mat) {
-		float[][] norm = new float[mat.length][mat[0].length];
+	private static double[][] normalize(double[][] mat) {
+		double[][] norm = new double[mat.length][mat[0].length];
 
-		float maxMenosMin = MAX - MIN;
+		double maxMenosMin = MAX - MIN;
 
 		for (int i = 0; i < mat.length; i++) {
 			for (int j = 0; j < mat[i].length; j++) {
@@ -474,28 +474,20 @@ public class Main {
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
 
-			float segPorAcorde = QTDSEGMENTOS / numAcordes;
-
-			double probFicar = (segPorAcorde - 1) / segPorAcorde;
-			double probMudar = 1 / segPorAcorde;
-
-			System.out.println("prob de ficar " + probFicar);
-			System.out.println("prob de mudar " + probMudar);
-
 			List<String> states = new ArrayList<String>();
 
-			// MATRIZ DE PROBABILIDADES DE TAMANHO (qtd de acordes x segmentos)
-			float[][] probMatrix = new float[QTDACORDES][QTDSEGMENTOS];
+			// MATRIZ DE PROBABILIDADES DE EMISSAO DE TAMANHO (qtd de acordes x segmentos)
+			double[][] emissionProbMatrix = new double[QTDACORDES][QTDSEGMENTOS];
 			int v = 0;
-			MAX = Float.MIN_VALUE;
-			MIN = Float.MAX_VALUE;
+			MAX = Double.MIN_VALUE;
+			MIN = Double.MAX_VALUE;
 			for (Map.Entry<String, float[]> entry : teste.entrySet()) {
 				states.add(entry.getKey());
 				for (int x = 0; x < QTDSEGMENTOS; x++) {
-					probMatrix[v][x] = sumOfMult(getPCP(x), entry.getValue());
+					emissionProbMatrix[v][x] = sumOfMult(getPCP(x), entry.getValue());
 
-					MAX = Math.max(probMatrix[v][x], MAX);
-					MIN = Math.min(probMatrix[v][x], MIN);
+					MAX = Math.max(emissionProbMatrix[v][x], MAX);
+					MIN = Math.min(emissionProbMatrix[v][x], MIN);
 				}
 				v++;
 			}
@@ -510,8 +502,8 @@ public class Main {
 			// System.out.println("");
 			// }
 
-			// NORMALIZANDO MATRIZ DE PROBABILIDADES (0 a 1)
-			probMatrix = normalize(probMatrix);
+			// NORMALIZANDO MATRIZ DE PROBABILIDADES DE EMISSAO (0 a 1)
+			emissionProbMatrix = normalize(emissionProbMatrix);
 
 			// System.out.println("");
 
@@ -533,7 +525,7 @@ public class Main {
 			// MOVING AVERAGE
 			writeToFile(m2);
 
-			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
+			// O CHROMAGRAM � O MEU CONJUNTO DE OBSERVACOES
 
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
@@ -555,6 +547,20 @@ public class Main {
 			Viterbi vi = new Viterbi();
 
 			List<String> acordes = c.getAcordes();
+			
+			float segPorAcorde = QTDSEGMENTOS / numAcordes;
+
+			double probFicar = (segPorAcorde - 1) / segPorAcorde;
+			double probMudar = 1 / segPorAcorde;
+			
+			// definindo as probabilidades de transicao -----------------
+			double[][] trans_prob = new double[QTDACORDES][QTDSEGMENTOS];
+			for(int i = 0; i < QTDACORDES; i++) {
+				for(int j = 0; j < QTDSEGMENTOS; j++) {
+					trans_prob[i][j] = probMudar;
+				}
+			}
+			// ----------------------------------------------------------
 
 			// definindo as probabilidades iniciais -----------
 			double[] start_prob = new double[states.size()];
@@ -565,18 +571,20 @@ public class Main {
 			// -------------------------------------------------
 
 			// definindo as observacoes -----------------------
-			String[] observations = new String[acordes.size()];
-			for (int s = 0; s < acordes.size(); s++) {
-				observations[s] = acordes.get(s);
-			}
+//			String[] observations = new String[acordes.size()];
+//			for (int s = 0; s < acordes.size(); s++) {
+//				observations[s] = acordes.get(s);
+//			}
 			// -------------------------------------------------
 
+			// definindo os estados -----------------------
+			String[] estados = new String[states.size()];
 			for (int s = 0; s < states.size(); s++) {
-				System.out.println(states.get(s) + ": " + start_prob[s]);
+				estados[s] = states.get(s);
 			}
-
-			// forwardViterbi(observations, states, start_probability,
-			// transition_probability, emission_probability)
+			// --------------------------------------------
+			vi.setStates(estados);
+			vi.forwardViterbi(50, estados, start_prob, trans_prob, emissionProbMatrix);
 			// TODO
 
 			// List<Segment> seg = au.getSegments();
@@ -602,7 +610,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
-		System.out.println("Digite o ID da música a ser analisada:");
+		System.out.println("Digite o ID da musica a ser analisada:");
 		MUSIC_ID = in.nextLine();
 		in.close();
 		try {
