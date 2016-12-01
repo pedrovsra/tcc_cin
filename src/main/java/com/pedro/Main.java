@@ -399,6 +399,34 @@ public class Main {
 		return norm;
 	}
 
+	private static double arrSum(double[] arr) {
+		double sum = 0;
+
+		for (int i = 0; i < arr.length; i++)
+			sum += arr[i];
+
+		return sum;
+	}
+
+	private static double[][] toPercent(double[][] mat) {
+		double[][] per = new double[mat.length][mat[0].length];
+		double[] aux = new double[mat.length];
+		double s;
+
+		int s1 = mat.length, s2 = mat[0].length;
+		System.out.println(s1 + "  " + s2);
+		for (int i = 0; i < s2; i++) {
+			for (int j = 0; j < s1; j++) {
+				aux[j] = mat[j][i];
+			}
+			s = arrSum(aux);
+			for (int j = 0; j < s1; j++) {
+				per[j][i] = mat[j][i] / s;
+			}
+		}
+		return per;
+	}
+
 	private static float[] getPCP(int index) {
 		float[] aux = new float[12];
 		for (int i = 0; i < 12; i++) {
@@ -476,7 +504,8 @@ public class Main {
 
 			List<String> states = new ArrayList<String>();
 
-			// MATRIZ DE PROBABILIDADES DE EMISSAO DE TAMANHO (qtd de acordes x segmentos)
+			// MATRIZ DE PROBABILIDADES DE EMISSAO DE TAMANHO (qtd de acordes x
+			// segmentos)
 			double[][] emissionProbMatrix = new double[QTDACORDES][QTDSEGMENTOS];
 			int v = 0;
 			MAX = Double.MIN_VALUE;
@@ -509,10 +538,14 @@ public class Main {
 
 			// for (int x = 0; x < QTDACORDES; x++) {
 			// for (int l = 0; l < QTDSEGMENTOS; l++) {
-			// System.out.print(probMatrix[x][l] + " ");
+			// System.out.print(emissionProbMatrix[x][l] + " ");
 			// }
 			// System.out.println("");
 			// }
+
+			// PASSANDO AS PROBABILIDADES PARA PORCENTAGEM
+			emissionProbMatrix = toPercent(emissionProbMatrix);
+			// writeToFileC(emissionProbMatrix);
 
 			// calculando CENS do pitch
 			// double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
@@ -523,9 +556,9 @@ public class Main {
 			// calculando a moving average (pre-filtro)
 			// float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
 			// MOVING AVERAGE
-			writeToFile(m2);
+			// writeToFile(m2);
 
-			// O CHROMAGRAM É O MEU CONJUNTO DE OBSERVACOES
+			// O CHROMAGRAM ï¿½ O MEU CONJUNTO DE OBSERVACOES
 
 			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
 			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
@@ -540,23 +573,26 @@ public class Main {
 
 			// STATES: acordes presentes na musica
 			// OBSERVACOES: o pcp de cada segmento
-			// PROBABILIDADE A PRIORI: 1 pro primeiro acorde da musica, 0 pro resto
-			// PROBALIDIDADE DE EMISSAO: soma das multiplicaes do pcp com template
-			// PROBABILIDADE DE TRANSICAO: 1/x para mudar e (x-1)/x para ficar, onde x = (seg/acorde)
+			// PROBABILIDADE A PRIORI: 1 pro primeiro acorde da musica, 0 pro
+			// resto
+			// PROBALIDIDADE DE EMISSAO: soma das multiplicaes do pcp com
+			// template
+			// PROBABILIDADE DE TRANSICAO: 1/x para mudar e (x-1)/x para ficar,
+			// onde x = (seg/acorde)
 
 			Viterbi vi = new Viterbi();
 
 			List<String> acordes = c.getAcordes();
-			
+
 			float segPorAcorde = QTDSEGMENTOS / numAcordes;
 
 			double probFicar = (segPorAcorde - 1) / segPorAcorde;
-			double probMudar = 1 / segPorAcorde;
-			
+			double probMudar = 1.0 / (double) QTDACORDES;
+
 			// definindo as probabilidades de transicao -----------------
 			double[][] trans_prob = new double[QTDACORDES][QTDSEGMENTOS];
-			for(int i = 0; i < QTDACORDES; i++) {
-				for(int j = 0; j < QTDSEGMENTOS; j++) {
+			for (int i = 0; i < QTDACORDES; i++) {
+				for (int j = 0; j < QTDSEGMENTOS; j++) {
 					trans_prob[i][j] = probMudar;
 				}
 			}
@@ -571,10 +607,10 @@ public class Main {
 			// -------------------------------------------------
 
 			// definindo as observacoes -----------------------
-//			String[] observations = new String[acordes.size()];
-//			for (int s = 0; s < acordes.size(); s++) {
-//				observations[s] = acordes.get(s);
-//			}
+			// String[] observations = new String[acordes.size()];
+			// for (int s = 0; s < acordes.size(); s++) {
+			// observations[s] = acordes.get(s);
+			// }
 			// -------------------------------------------------
 
 			// definindo os estados -----------------------
@@ -583,7 +619,7 @@ public class Main {
 				estados[s] = states.get(s);
 			}
 			// --------------------------------------------
-			vi.setStates(estados);
+			// vi.setStates(estados);
 			vi.forwardViterbi(50, estados, start_prob, trans_prob, emissionProbMatrix);
 			// TODO
 
