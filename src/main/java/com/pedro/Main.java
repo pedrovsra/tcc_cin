@@ -45,11 +45,13 @@ import com.pedro.auth.OAuth2ClientCredentials;
 import com.pedro.auth.SpotifyUrl;
 import com.pedro.auxiliary.ChordTemplates;
 import com.pedro.auxiliary.ExponentialMovingAverage;
+import com.pedro.auxiliary.MeuViterbi;
 import com.pedro.auxiliary.Viterbi;
 import com.pedro.chroma.Pitch2CENS;
 import com.pedro.chroma.iSignal2Chroma;
 import com.pedro.entities.Chord;
 import com.pedro.entities.Cifra;
+import com.pedro.entities.PitchClassProfile;
 import com.pedro.entities.Track;
 import com.pedro.entities.analysis_entities.AudioAnalysis;
 import com.pedro.entities.analysis_entities.Segment;
@@ -414,7 +416,7 @@ public class Main {
 		double s;
 
 		int s1 = mat.length, s2 = mat[0].length;
-		System.out.println(s1 + "  " + s2);
+		// System.out.println(s1 + " " + s2);
 		for (int i = 0; i < s2; i++) {
 			for (int j = 0; j < s1; j++) {
 				aux[j] = mat[j][i];
@@ -425,6 +427,20 @@ public class Main {
 			}
 		}
 		return per;
+	}
+
+	private static PitchClassProfile[] toPCPArray(float[][] mat) {
+		PitchClassProfile[] pcps = new PitchClassProfile[mat[0].length];
+		double[] aux = new double[12];
+		int s1 = mat.length, s2 = mat[0].length;
+		for (int i = 0; i < s2; i++) {
+			for (int j = 0; j < s1; j++) {
+				aux[j] = mat[j][i];
+			}
+			pcps[i] = new PitchClassProfile(aux);
+		}
+
+		return pcps;
 	}
 
 	private static float[] getPCP(int index) {
@@ -533,6 +549,9 @@ public class Main {
 
 			// NORMALIZANDO MATRIZ DE PROBABILIDADES DE EMISSAO (0 a 1)
 			emissionProbMatrix = normalize(emissionProbMatrix);
+
+			// GERANDO UM ARRAY DE PCP
+			PitchClassProfile[] pcps = toPCPArray(SEGMENTS);
 
 			// System.out.println("");
 
