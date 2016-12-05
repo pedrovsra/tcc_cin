@@ -66,10 +66,6 @@ public class Main {
 
 	private static final String BASE_URL = "https://www.cifraclub.com.br/";
 
-	private static final double EMA_ALPHA = 0.5;
-
-	private static final double INITIAL_PROBABILITY = 0.5;
-
 	private static final File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".store/spotify_sample");
 
 	private static DataStoreFactory DATA_STORE_FACTORY;
@@ -84,14 +80,12 @@ public class Main {
 
 	private static final String AUTH_SERVER_URL = "https://accounts.spotify.com/authorize";
 
-	private static final String[] CHROMATIC_SCALE = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
-
-	private static IDictionary dic;
-
 	// LISTA DE ACORDES DA MUSICA - POKER FACE
 	private static String[] CHORD_SEQUENCE = { "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em",
 			"C", "G", "D", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em", "C", "G",
 			"D", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "G", "D", "Em", "G", "Em", "G" };
+	
+	private static String[] ESTADOS = {"Em", "G", "C", "D"};
 
 	private static float[][] SEGMENTS;
 	private static int QTDACORDES;
@@ -117,19 +111,6 @@ public class Main {
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
 
-	private static void printPitches(AudioAnalysis aa) {
-		List<Segment> segments = aa.getSegments();
-		int size = segments.size();
-		System.out.println("nÃºmero de segmentos: " + size);
-		for (int i = 0; i < 12; i++) {
-			System.out.print(CHROMATIC_SCALE[i] + ": ");
-			for (int j = 0; j < size; j++) {
-				System.out.print(segments.get(j).getPitches()[i] + "\t");
-			}
-			System.out.println("");
-		}
-	}
-
 	private static float[][] generateMatrix(AudioAnalysis aa) {
 		List<Segment> segments = aa.getSegments();
 		int size = segments.size();
@@ -141,58 +122,6 @@ public class Main {
 			}
 		}
 		return matrix;
-	}
-
-	private static String[] get3OrderedPitches(float[] notes) {
-		float aux[] = notes;
-		String c[] = CHROMATIC_SCALE;
-
-		boolean trocado;
-		do {
-			trocado = false;
-			for (int i = 0; i < 11; i++) {
-				if (aux[i] < aux[i + 1]) {
-					// trocando os pitches
-					float f = aux[i];
-					aux[i] = aux[i + 1];
-					aux[i + 1] = f;
-					trocado = true;
-
-					// trocando as notas
-					String t = c[i];
-					c[i] = c[i + 1];
-					c[i + 1] = t;
-				}
-			}
-		} while (trocado);
-
-		// Arrays.sort(aux);
-		return new String[] { c[0], c[1], c[2] };
-	}
-
-	private static void initProbMatrix(double base_prob, int num_chords) {
-		PROB_MATRIX = new double[num_chords][num_chords];
-		for (int i = 0; i < num_chords; i++) {
-			for (int j = 0; j < num_chords; j++) {
-				PROB_MATRIX[i][j] = base_prob;
-			}
-		}
-	}
-
-	private static void initialProbabilities(double base_prob, int num_chords) {
-		INITIAL_PROBALILITIES = new double[num_chords];
-		for (int i = 0; i < num_chords; i++) {
-			INITIAL_PROBALILITIES[i] = base_prob;
-		}
-	}
-
-	private static void initEmissionMatrix(double base_prob, int num_chords, int num_segments) {
-		EMISSION_MATRIX = new double[num_segments][num_chords];
-		for (int i = 0; i < num_segments; i++) {
-			for (int j = 0; j < num_chords; j++) {
-				EMISSION_MATRIX[i][j] = base_prob;
-			}
-		}
 	}
 
 	private static void writeToFile(float[][] arr) throws IOException {
@@ -225,32 +154,6 @@ public class Main {
 		}
 		fw.flush();
 		fw.close();
-	}
-
-	private static float[][] calculateMovingAgerageDouble(double[][] arr) {
-		float[][] aux = new float[arr.length][arr[0].length];
-		ExponentialMovingAverage ema = new ExponentialMovingAverage(EMA_ALPHA);
-
-		for (int i = 0; i < arr.length; i++) {
-			for (int j = 0; j < arr[i].length; j++) {
-				aux[i][j] = (float) ema.average(arr[i][j]);
-			}
-		}
-
-		return aux;
-	}
-
-	private static float[][] calculateMovingAgerage(float[][] arr) {
-		float[][] aux = new float[12][arr[0].length];
-		ExponentialMovingAverage ema = new ExponentialMovingAverage(EMA_ALPHA);
-
-		for (int i = 0; i < arr.length; i++) {
-			for (int j = 0; j < arr[i].length; j++) {
-				aux[i][j] = (float) ema.average(arr[i][j]);
-			}
-		}
-
-		return aux;
 	}
 
 	private static float sumOfMult(float[] pcp, float[] template) {
@@ -461,23 +364,8 @@ public class Main {
 		System.out.println(
 				"Obtendo informações da música '" + t.getName() + "' de '" + t.getArtists().get(0).getName() + "'");
 
-		// for (int v = 0; v < teste.size(); v++) {
-		// System.out.println(teste.entrySet().toArray()[v]);
-		// }
-		// for (Map.Entry<String, float[]> entry : teste.entrySet()) {
-		// System.out.println(entry.getKey());
-		// }
-		// Element pre = doc.select("cifra-tom").first();
-		// Element tom = doc.getElementById("cifra_tom");
-		// System.out.println(tom.html());
-
-		// System.out.println(doc.html());
-		// System.exit(0);
-
 		SpotifyUrl urlAnalysis = new SpotifyUrl("https://api.spotify.com/v1/audio-analysis/" + music_id);
 		request = requestFactory.buildGetRequest(urlAnalysis);
-
-		dic = new ChordsDictionaryHash();
 
 		String response = request.execute().parseAsString();
 
@@ -501,19 +389,6 @@ public class Main {
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 			SEGMENTS = m;
 			float[][] m2 = calculateDynamicMovingMedian(m, 7);
-			// float[][] m2 = calculateStaticMovingMedian(m, 7);
-
-			// iSignal2Chroma p2c = new Pitch2CENS();
-			// ArrayList<double[]> arrl = new ArrayList<double[]>();
-			// double[] aux;
-			// for (int i = 0; i < 12; i++) {
-			// aux = new double[m[i].length];
-			// System.out.println(m[i].length);
-			// for (int j = 0; j < m[i].length; j++) {
-			// aux[j] = m[i][j];
-			// }
-			// arrl.add(aux);
-			// }
 
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
@@ -537,45 +412,14 @@ public class Main {
 				v++;
 			}
 
-			// System.out.println(MAX);
-			// System.out.println(MIN);
-
-			// for (int x = 0; x < QTDACORDES; x++) {
-			// for (int l = 0; l < QTDSEGMENTOS; l++) {
-			// System.out.print(probMatrix[x][l] + " ");
-			// }
-			// System.out.println("");
-			// }
-
 			// NORMALIZANDO MATRIZ DE PROBABILIDADES DE EMISSAO (0 a 1)
 			emissionProbMatrix = normalize(emissionProbMatrix);
 
 			// GERANDO UM ARRAY DE PCP
 			PitchClassProfile[] pcps = toPCPArray(SEGMENTS);
 
-			// System.out.println("");
-
-			// for (int x = 0; x < QTDACORDES; x++) {
-			// for (int l = 0; l < QTDSEGMENTOS; l++) {
-			// System.out.print(emissionProbMatrix[x][l] + " ");
-			// }
-			// System.out.println("");
-			// }
-
 			// PASSANDO AS PROBABILIDADES PARA PORCENTAGEM
 			emissionProbMatrix = toPercent(emissionProbMatrix);
-			// writeToFileC(emissionProbMatrix);
-
-			// calculando CENS do pitch
-			// double[][] q = p2c.signal2Chroma(arrl, false); // CHROMAGRAN COM
-			// CENS
-			// writeToFile(m);
-			// writeToFileC(q);
-
-			// calculando a moving average (pre-filtro)
-			// float[][] ma = calculateMovingAgerageDouble(q); // CHROMAGRAM COM
-			// MOVING AVERAGE
-			// writeToFile(m2);
 
 			// O CHROMAGRAM � O MEU CONJUNTO DE OBSERVACOES
 
@@ -599,7 +443,7 @@ public class Main {
 			// PROBABILIDADE DE TRANSICAO: 1/x para mudar e (x-1)/x para ficar,
 			// onde x = (seg/acorde)
 
-			Viterbi vi = new Viterbi();
+			MeuViterbi vi = new MeuViterbi();
 
 			List<String> acordes = c.getAcordes();
 
@@ -609,9 +453,9 @@ public class Main {
 			double probMudar = 1.0 / (double) QTDACORDES;
 
 			// definindo as probabilidades de transicao -----------------
-			double[][] trans_prob = new double[QTDACORDES][QTDSEGMENTOS];
+			double[][] trans_prob = new double[QTDACORDES][QTDACORDES];
 			for (int i = 0; i < QTDACORDES; i++) {
-				for (int j = 0; j < QTDSEGMENTOS; j++) {
+				for (int j = 0; j < QTDACORDES; j++) {
 					trans_prob[i][j] = probMudar;
 				}
 			}
@@ -621,16 +465,18 @@ public class Main {
 			double[] start_prob = new double[states.size()];
 			start_prob[0] = 1;
 			for (int s = 1; s < states.size(); s++) {
-				start_prob[s] = 0;
+				start_prob[s] = 0.1;
+				start_prob[0] -= 0.1;
 			}
 			// -------------------------------------------------
-
-			// definindo as observacoes -----------------------
-			// String[] observations = new String[acordes.size()];
-			// for (int s = 0; s < acordes.size(); s++) {
-			// observations[s] = acordes.get(s);
-			// }
-			// -------------------------------------------------
+			
+			int estado_final = -1;
+			
+			for(int i = 0; i < states.size(); i++) {
+				if(states.get(i).equals(acordes.get(acordes.size()-1))) {
+					estado_final = i;
+				}
+			}
 
 			// definindo os estados -----------------------
 			String[] estados = new String[states.size()];
@@ -638,24 +484,7 @@ public class Main {
 				estados[s] = states.get(s);
 			}
 			// --------------------------------------------
-			// vi.setStates(estados);
-			vi.forwardViterbi(50, estados, start_prob, trans_prob, emissionProbMatrix);
-			// TODO
-
-			// List<Segment> seg = au.getSegments();
-			// String a[], b, c;
-			// for (int i = 0; i < seg.size(); i++) {
-			// a = get3OrderedPitches(seg.get(i).getPitches());
-			// b = a[0] + a[1] + a[2];
-			// if (dic.getChordByNotes(b).getName() != null) {
-			// c = "---- " + dic.getChordByNotes(b).getName();
-			// cont++;
-			// } else
-			// c = "-";
-			// System.out.println(b + " " + c);
-			// }
-			// System.out.println("nÃºmero de acertos: " + cont);
-
+			vi.run(pcps, estados, trans_prob, emissionProbMatrix, start_prob, estado_final);
 		} catch (Exception e) {
 			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
 			e.printStackTrace();
