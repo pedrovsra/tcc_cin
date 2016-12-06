@@ -82,7 +82,7 @@ public class MeuViterbi {
 	 * @param matriz_emissao B de tamanho K*N tal que B[i,j] � a probabilidade de observar oj a partir do estado si
 	 * @param probs_iniciais PI de tamanho K tal que PIi � a probabilidade de x1 = si
 	 */
-	public void run(PitchClassProfile[] PCPs, String[] estados, double[][] matriz_transicao, double[][] matriz_emissao, double[] probs_iniciais, int estado_final) {
+	public void run(PitchClassProfile[] PCPs, String[] estados, double[][] matriz_transicao, double[][] matriz_emissao, double[] probs_iniciais) {
 		this.K = estados.length;
 		this.T = PCPs.length;
 		
@@ -107,7 +107,7 @@ public class MeuViterbi {
 				this.T2[j][i] = argmaxk(i, j); // T2[i,j] <- argmaxk(T1[k, i-1] * A[k,j])
 			}
 		}
-		this.Z[this.T - 1] = estado_final;//argmaxZ(); // z[T] <- argmaxk(T1[k, T])
+		this.Z[this.T - 1] = argmaxZ(); // z[T] <- argmaxk(T1[k, T])
 		this.X[this.T - 1] = estados[(int) this.Z[this.T - 1]]; // x[T] <- s(zT)
 		
 		for(int i = this.T-1; i > 0; i--) {
@@ -115,12 +115,15 @@ public class MeuViterbi {
 			this.X[i - 1] = estados[(int) this.Z[i - 1]]; // x[i-1] <- S[z[i-1]]
 		}
 		
+		System.out.println("Acordes do Viterbi");
 		String last = "";
+		System.out.print("[");
 		for(int i = 0; i < this.T; i++) {
 			if(!this.X[i].equals(last)) {
 				last = this.X[i];
-				System.out.print(this.X[i] + " ");
+				System.out.print(this.X[i] + ", ");
 			}
 		}
+		System.out.print("]");
 	}
 }

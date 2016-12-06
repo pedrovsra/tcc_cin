@@ -84,12 +84,15 @@ public class Main {
 	private static String[] CHORD_SEQUENCE = { "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em",
 			"C", "G", "D", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em", "C", "G",
 			"D", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "G", "D", "Em", "G", "Em", "G" };
-	
-	private static String[] ESTADOS = {"Em", "G", "C", "D"};
+
+	private static String[] ESTADOS = { "Em", "G", "C", "D" };
+
+	private static double TRANS_PROB = 0.5;
 
 	private static float[][] SEGMENTS;
 	private static int QTDACORDES;
 	private static int QTDSEGMENTOS;
+	private static int ACORDES;
 
 	private static double MAX, MIN;
 
@@ -230,6 +233,18 @@ public class Main {
 		for (Map.Entry<String, Integer> entry : acordes.entrySet()) {
 			c = new Chord(entry.getKey(), ChordTemplates.valueOf(tratarNomeAcorde(entry.getKey())).getTemplate());
 			templates.put(c.getName(), c.getTemplate());
+		}
+
+		return templates;
+	}
+
+	private static List<Chord> getChordTemplates(List<String> acordes) {
+		List<Chord> templates = new ArrayList<Chord>();
+		Chord c;
+
+		for (String acorde : acordes) {
+			c = new Chord(acorde, ChordTemplates.valueOf(tratarNomeAcorde(acorde)).getTemplate());
+			templates.add(c);
 		}
 
 		return templates;
@@ -393,18 +408,34 @@ public class Main {
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
 
+			List<String> acordes = c.getAcordes();
+			ACORDES = acordes.size();
+			List<Chord> teste2 = getChordTemplates(acordes);
+
 			List<String> states = new ArrayList<String>();
 
 			// MATRIZ DE PROBABILIDADES DE EMISSAO DE TAMANHO (qtd de acordes x
 			// segmentos)
-			double[][] emissionProbMatrix = new double[QTDACORDES][QTDSEGMENTOS];
+			double[][] emissionProbMatrix = new double[ACORDES][QTDSEGMENTOS];
 			int v = 0;
 			MAX = Double.MIN_VALUE;
 			MIN = Double.MAX_VALUE;
-			for (Map.Entry<String, float[]> entry : teste.entrySet()) {
-				states.add(entry.getKey());
+			// for (Map.Entry<String, float[]> entry : teste.entrySet()) {
+			// states.add(entry.getKey());
+			// for (int x = 0; x < QTDSEGMENTOS; x++) {
+			// emissionProbMatrix[v][x] = sumOfMult(getPCP(x),
+			// entry.getValue());
+			//
+			// MAX = Math.max(emissionProbMatrix[v][x], MAX);
+			// MIN = Math.min(emissionProbMatrix[v][x], MIN);
+			// }
+			// v++;
+			// }
+
+			for (Chord ch : teste2) {
+				states.add(ch.getName());
 				for (int x = 0; x < QTDSEGMENTOS; x++) {
-					emissionProbMatrix[v][x] = sumOfMult(getPCP(x), entry.getValue());
+					emissionProbMatrix[v][x] = sumOfMult(getPCP(x), ch.getTemplate());
 
 					MAX = Math.max(emissionProbMatrix[v][x], MAX);
 					MIN = Math.min(emissionProbMatrix[v][x], MIN);
@@ -444,8 +475,9 @@ public class Main {
 			// onde x = (seg/acorde)
 
 			MeuViterbi vi = new MeuViterbi();
-
-			List<String> acordes = c.getAcordes();
+			
+			System.out.println("Acordes da cifra");
+			System.out.println(acordes.toString());
 
 			float segPorAcorde = QTDSEGMENTOS / numAcordes;
 
@@ -453,12 +485,30 @@ public class Main {
 			double probMudar = 1.0 / (double) QTDACORDES;
 
 			// definindo as probabilidades de transicao -----------------
-			double[][] trans_prob = new double[QTDACORDES][QTDACORDES];
-			for (int i = 0; i < QTDACORDES; i++) {
-				for (int j = 0; j < QTDACORDES; j++) {
-					trans_prob[i][j] = probMudar;
-				}
+			// double[][] trans_prob = new double[QTDACORDES][QTDACORDES];
+			// for (int i = 0; i < QTDACORDES; i++) {
+			// for (int j = 0; j < QTDACORDES; j++) {
+			// trans_prob[i][j] = probMudar;
+			// }
+			// }
+
+			double[][] trans_prob = new double[ACORDES][ACORDES];
+			for (int i = 0; i < ACORDES - 1; i++) {
+				// for (int j = 0; j < ACORDES - 1; j++) {
+				// if (i == j) {
+				trans_prob[i][i] = TRANS_PROB;
+				trans_prob[i][i + 1] = TRANS_PROB;
+				// }
+				// }
 			}
+			trans_prob[ACORDES - 1][ACORDES - 1] = TRANS_PROB;
+
+			// for (int i = 0; i < ACORDES; i++) {
+			// for (int j = 0; j < ACORDES; j++) {
+			// System.out.print(trans_prob[i][j] + " ");
+			// }
+			// System.out.println("");
+			// }
 			// ----------------------------------------------------------
 
 			// definindo as probabilidades iniciais -----------
@@ -469,22 +519,22 @@ public class Main {
 				start_prob[0] -= 0.1;
 			}
 			// -------------------------------------------------
-			
+
 			int estado_final = -1;
-			
-			for(int i = 0; i < states.size(); i++) {
-				if(states.get(i).equals(acordes.get(acordes.size()-1))) {
+
+			for (int i = 0; i < states.size(); i++) {
+				if (states.get(i).equals(acordes.get(acordes.size() - 1))) {
 					estado_final = i;
 				}
 			}
 
 			// definindo os estados -----------------------
-			String[] estados = new String[states.size()];
-			for (int s = 0; s < states.size(); s++) {
-				estados[s] = states.get(s);
+			String[] estados = new String[acordes.size()];
+			for (int s = 0; s < acordes.size(); s++) {
+				estados[s] = acordes.get(s);
 			}
 			// --------------------------------------------
-			vi.run(pcps, estados, trans_prob, emissionProbMatrix, start_prob, estado_final);
+			vi.run(pcps, estados, trans_prob, emissionProbMatrix, start_prob);
 		} catch (Exception e) {
 			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
 			e.printStackTrace();
