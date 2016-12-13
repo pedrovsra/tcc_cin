@@ -3,24 +3,15 @@ package com.pedro;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import javax.swing.text.StyledEditorKit.ForegroundAction;
-
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -44,21 +35,52 @@ import com.google.gson.GsonBuilder;
 import com.pedro.auth.OAuth2ClientCredentials;
 import com.pedro.auth.SpotifyUrl;
 import com.pedro.auxiliary.ChordTemplates;
-import com.pedro.auxiliary.ExponentialMovingAverage;
 import com.pedro.auxiliary.MeuViterbi;
-import com.pedro.auxiliary.Viterbi;
-import com.pedro.chroma.Pitch2CENS;
-import com.pedro.chroma.iSignal2Chroma;
 import com.pedro.entities.Chord;
 import com.pedro.entities.Cifra;
 import com.pedro.entities.PitchClassProfile;
 import com.pedro.entities.Track;
 import com.pedro.entities.analysis_entities.AudioAnalysis;
 import com.pedro.entities.analysis_entities.Segment;
-import com.pedro.interfaces.IDictionary;
-import com.pedro.storage.ChordsDictionaryHash;
 
 // https://developers.google.com/api-client-library/java/google-oauth-java-client/
+
+class AcordeTempo {
+	private String nome;
+	private float inicio;
+	private float duracao;
+
+	public AcordeTempo(String nome, float inicio, float duracao) {
+		super();
+		this.nome = nome;
+		this.inicio = inicio;
+		this.duracao = duracao;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public float getInicio() {
+		return inicio;
+	}
+
+	public void setInicio(float inicio) {
+		this.inicio = inicio;
+	}
+
+	public float getDuracao() {
+		return duracao;
+	}
+
+	public void setDuracao(float duracao) {
+		this.duracao = duracao;
+	}
+}
 
 public class Main {
 
@@ -80,12 +102,33 @@ public class Main {
 
 	private static final String AUTH_SERVER_URL = "https://accounts.spotify.com/authorize";
 
-	// LISTA DE ACORDES DA MUSICA - POKER FACE
-	private static String[] CHORD_SEQUENCE = { "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em",
-			"C", "G", "D", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "Em", "C", "G",
-			"D", "Em", "G", "Em", "G", "Em", "G", "Em", "C", "G", "D", "G", "D", "Em", "G", "Em", "G" };
+	// LISTAS DE ACORDES
+	// -----------------------------------------------------------------------------------------------
+	private static String[] POKER_FACE = { "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "G#m",
+			"E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "G#m",
+			"E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "B", "F#", "G#m", "B", "G#m",
+			"B" };
+	private static String[] ESTADOS_POKER_FACE = { "Em", "G", "C", "D" };
 
-	private static String[] ESTADOS = { "Em", "G", "C", "D" };
+	private static String[] ISLAND_IN_THE_SUN = { "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "B", "F#", "G#m", "B",
+			"G#m", "B" };
+	private static String[] ESTADOS_ISLAND_IN_THE_SUN = { "Em", "G", "C", "D" };
+
+	private static String[] THE_SUBURBS = { "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "B", "F#", "G#m", "B",
+			"G#m", "B" };
+	private static String[] ESTADOS_THE_SUBURBS = { "Em", "G", "C", "D" };
+
+	private static String[] THE_SCIENTIST = { "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#",
+			"G#m", "E", "B", "F#", "G#m", "B", "G#m", "B", "G#m", "B", "G#m", "E", "B", "F#", "B", "F#", "G#m", "B",
+			"G#m", "B" };
+	private static String[] ESTADOS_THE_SCIENTIST = { "Em", "G", "C", "D" };
+
+	// ----------------------------------------------------------------------------------------------------------------
 
 	private static double TRANS_PROB = 0.5;
 
@@ -134,7 +177,7 @@ public class Main {
 			aux = "";
 			// System.out.println(arr[i].length);
 			for (int j = 0; j < arr[i].length; j++) {
-				aux += arr[i][j] + " ";
+				aux += arr[i][j] + "\t";
 			}
 			fw.write(aux + "\n");
 		}
@@ -279,7 +322,11 @@ public class Main {
 	private static String prepareUrl(String song, String artist) {
 		song = song.replace("É", "");
 		song = song.replace("é", "");
+		song = song.replace("'", "");
+		song = song.replace("/", " ");
 
+		artist = artist.replace("/", " ");
+		artist = artist.replace("'", "");
 		artist = artist.replace("É", "");
 		artist = artist.replace("é", "");
 
@@ -403,7 +450,17 @@ public class Main {
 
 			float[][] m = generateMatrix(au); // CHROMAGRAM SEM TRATAMENTO
 			SEGMENTS = m;
-			float[][] m2 = calculateDynamicMovingMedian(m, 7);
+
+			// for (int i = 0; i < 12; i++) {
+			// // System.out.println(arr[i].length);
+			// for (int j = 0; j < m[i].length; j++) {
+			// System.out.printf("%.3f ", m[i][j]);
+			// }
+			// System.out.println("");
+			// }
+
+			writeToFile(m);
+			// float[][] m2 = calculateDynamicMovingMedian(m, 7);
 
 			QTDACORDES = teste.size();
 			QTDSEGMENTOS = m[0].length;
@@ -420,17 +477,6 @@ public class Main {
 			int v = 0;
 			MAX = Double.MIN_VALUE;
 			MIN = Double.MAX_VALUE;
-			// for (Map.Entry<String, float[]> entry : teste.entrySet()) {
-			// states.add(entry.getKey());
-			// for (int x = 0; x < QTDSEGMENTOS; x++) {
-			// emissionProbMatrix[v][x] = sumOfMult(getPCP(x),
-			// entry.getValue());
-			//
-			// MAX = Math.max(emissionProbMatrix[v][x], MAX);
-			// MIN = Math.min(emissionProbMatrix[v][x], MIN);
-			// }
-			// v++;
-			// }
 
 			for (Chord ch : teste2) {
 				states.add(ch.getName());
@@ -454,11 +500,15 @@ public class Main {
 
 			// O CHROMAGRAM � O MEU CONJUNTO DE OBSERVACOES
 
-			// 64yrDBpcdwEdNY9loyEGbX - 21 guns
-			// 1QV6tiMFM6fSOKOGLMHYYg - poker face USAR PRA TESTE
-			// 1OtGo99uypkRbMqshBVFnn - cant go on without you
-			// 66OsFOW2GHEnmGGbMpvB66 - the stage
-			// 5V1AHQugSTASVez5ffJtFo - let it be
+			// 1QV6tiMFM6fSOKOGLMHYYg - POKER FACE
+			// 4OaV9UYQ3EfrBRPjoO6u7c - HEART SHAPED BOX
+			// 26D1PRJjD9Jj1JGRk88KVc - LITHIUM
+			// 33iQW2OneB0oNh2NfrAzqW - BLITZKRIEG BOP
+			// 07b5vArZtW08PuEqCw61Ei - PET SEMATARY
+			// 3k1WwLG1OXCm6iQ13VrJEL - THE JACK
+			// 77NNZQSqzLNqh2A9JhLRkg - DONT STOP BELIEVIN
+			// 11Ojp7JniVvwd0gmgvyKkd - WRONG SIDE OF HEAVEN
+
 			// python plot_matrix.py --chroma chroma.txt
 
 			// initDictionary();
@@ -475,11 +525,13 @@ public class Main {
 			// onde x = (seg/acorde)
 
 			MeuViterbi vi = new MeuViterbi();
-			
+
 			System.out.println("Acordes da cifra");
 			System.out.println(acordes.toString());
+			// System.exit(0);
 
 			float segPorAcorde = QTDSEGMENTOS / numAcordes;
+			System.out.println(QTDSEGMENTOS);
 
 			double probFicar = (segPorAcorde - 1) / segPorAcorde;
 			double probMudar = 1.0 / (double) QTDACORDES;
@@ -534,7 +586,30 @@ public class Main {
 				estados[s] = acordes.get(s);
 			}
 			// --------------------------------------------
-			vi.run(pcps, estados, trans_prob, emissionProbMatrix, start_prob);
+
+			String[] resultados = vi.run(pcps, estados, trans_prob, emissionProbMatrix, start_prob);
+			List<Segment> segs = au.getSegments();
+			String st = resultados[0];
+			float ini = segs.get(0).getStart();
+			List<AcordeTempo> acs = new ArrayList<AcordeTempo>();
+			float dur = segs.get(0).getDuration();
+			for (int i = 1; i < resultados.length; i++) {
+				if (!resultados[i].equals(st)) {
+					acs.add(new AcordeTempo(st, ini, dur));
+
+					st = resultados[i];
+					ini = segs.get(i).getStart();
+					dur = segs.get(i).getDuration();
+				} else {
+					dur += segs.get(i).getDuration();
+				}
+			}
+			AcordeTempo aux;
+			for (int i = 0; i < acs.size(); i++) {
+				aux = acs.get(i);
+				System.out.println(aux.getNome() + ":" + aux.getInicio() + ":" + aux.getDuracao());
+			}
+
 		} catch (Exception e) {
 			System.out.println("Não foi possível gerar a matriz de valores a partir dessa música :(");
 			e.printStackTrace();
