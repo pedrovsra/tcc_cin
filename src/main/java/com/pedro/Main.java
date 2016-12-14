@@ -523,6 +523,17 @@ public class Main {
 			// template
 			// PROBABILIDADE DE TRANSICAO: 1/x para mudar e (x-1)/x para ficar,
 			// onde x = (seg/acorde)
+			
+			/*
+			 Lady Gaga - Poker Face -> https://www.cifraclub.com.br/lady-gaga/poker-face 
+			 Nirvana - Lithium -> https://www.cifraclub.com.br/nirvana/lithium/
+			 Nirvana - Heart Shaped Box -> https://www.cifraclub.com.br/nirvana/heart-shaped-box/
+			 Ramones - Blitzkrieg Bop -> https://www.cifraclub.com.br/ramones/blitzkrieg-bop-7419/
+			 Ramones - Pet Semetary -> https://www.cifraclub.com.br/ramones/pet-sematary/
+			 AC/DC - The Jack -> https://www.cifraclub.com.br/ac-dc/the-jack/
+			 Journey - Don't Stop Believin' -> https://www.cifraclub.com.br/journey/dont-stop-believin/
+			 Five Finger Death Punch - Wrong Side Of Heaven -> https://www.cifraclub.com.br/five-finger-death-punch/wrong-side-of-heaven/
+			 */
 
 			MeuViterbi vi = new MeuViterbi();
 
